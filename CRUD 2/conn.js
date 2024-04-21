@@ -88,7 +88,7 @@ async insertOrder(orderData) {
 
     // Add more methods for other CRUD operations as needed
 
-
+//METHOD TO DELETE THE MOST RECENT CUSTOMER BY THEIR ID
 async deleteRecentCust() {
     try {
         // Access the collection and find the document with the maximum _id
@@ -103,7 +103,7 @@ async deleteRecentCust() {
 
         // Delete the last document
         const result = await collection.deleteOne({ _id: lastDocument._id });
-        console.log(`Deleted last document with _id: ${lastDocument._id}`);
+        console.log(`Order has been cancelled for customer_id: ${lastDocument._id} !!`);
 
         return result;
     } catch (error) {
@@ -121,11 +121,12 @@ async function main() {
 
     //INSERTING CUSTOMER***********************************************************
     const customerData = {
-        firstName: "Kate",
-        lastName: "Demo",
-        mobile: "2345678",
-        email: "Kate@example.com",
-        address_line1: "pouiyuyft",
+        title: "Miss",
+        firstName: "Zoe",
+        lastName: "Harper",
+        mobile: 2345678,
+        email: "zoeharper@example.com",
+        address_line1: "123 Yellow Brick ",
         address_line2: " ",
         town: "Lucan",
         county_city: "Dublin",
@@ -133,40 +134,59 @@ async function main() {
     };
     
     // Validate specific fields (firstName, email, mobile)
-    const requiredFields = ['firstName', 'email', 'mobile'];
+    const requiredFields = ['firstName', 'lastName', 'email', 'mobile', 'address_line1', 'town', 'county_city'];
     for (const field of requiredFields) {
-        if (!customerData[field] || customerData[field].trim() === '') {
+        //REFERENCE: mongodb and stackover flow
+        //hasOwnProperty to check if field exists and all fields turned into strings, especially for mobile, to check if theres a value after trim. 
+        if (!customerData.hasOwnProperty(field) || customerData[field].toString().trim() === '') {
             console.error(`Error: ${field} field is required and cannot be empty.`);
-            // return; // Stop further execution if any of the required fields are missing or empty
             process.exit(1); // Terminate the program immediately with exit code 1
         }
     }
+    
+    
+    
     
     // If all required fields are valid, proceed with insertion
     const customerId = await db.insertCustomer(customerData);
 
     const itemsData = [
         { 
-            manufacturer: '', 
-            model: 'iPhone 13', 
+            manufacturer: 'EXAMPLE 2', 
+            model: ' ', 
             price: 999 
         },
         {
-            manufacturer: 'Samsung', 
+            manufacturer: 'EXAMPLE 2', 
             model: 'Galaxy S13', 
-            price: 799 
+            price: 799
         }
     ];
-    
-    // Validate each item in the itemsData array
-    for (const itemData of itemsData) {
-        if (!itemData.manufacturer || !itemData.model || !itemData.price) {
-            console.error('Error: Please provide values for manufacturer, model, and price for each item.');
-            await db.deleteRecentCust(); //called function to delete the last customer, by indicating the latest customer_id
+
+
+    for (let i = 0; i < itemsData.length; i++) {
+        const item = itemsData[i];
+        
+        // Check if any of the required fields are empty by using trim
+        //Had to do this way because arrays are just difficult
+        if (!item.manufacturer.trim() || !item.model.trim() || !item.price.toString().trim()) {
+            console.error(`Error: Manufacturer, model, and price fields are required for each item.`);
+            await db.deleteRecentCust(); // method to the last customer, in a way to cancel the order
             process.exit(1); // Terminate the program immediately with exit code 1
         }
     }
     
+    
+    // // Validate each item in the itemsData array
+    // for (const itemData of itemsData) {
+    //     // Check if any of the required fields are missing or empty
+    //     if (!itemData.manufacturer || !itemData.model || !itemData.price) {
+    //         console.error(`Error: manufacturer, model, and price fields are required and cannot be empty for each item.`);
+    //         await db.deleteRecentCust(); // Delete the last customer
+    //         process.exit(1); // Terminate the program immediately with exit code 1
+    //     }
+    // }
+
     // If all items have required fields, proceed with insertion
     const item = await db.insertItems(itemsData);
     
