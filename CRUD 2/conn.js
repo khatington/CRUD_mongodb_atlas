@@ -174,6 +174,57 @@ class Database {
 
 /********************************************************************************************************************************************************************/
 
+    //METHOD TO DELETE THE MOST RECENT CUSTOMER BY THEIR ID*****************************************************************************************/
+
+
+    async deleteDuplicateDocuments(input, field, collection) {
+    try {
+        // Accessing specified collection
+        const currentCollection = this.client.db('Mobile-Phone-Store-CRUD').collection(collection);
+
+        /**
+         * Declare query
+         * Found out through mongodb that square brackets create a dynamic query 
+         * the regex is to make the query non case sensitive, it'll match the input to the field no matter if its caps or not
+         */
+        const query = { [field]: { $regex: `.*${input}.*`, $options: 'i' } };
+
+        // Find and delete duplicate documents that match the query
+        const pipeline = [
+            { $match: query },
+            { $group: { _id: `$${field}`, uniqueIds: { $addToSet: '$_id' }, count: { $sum: 1 } } },
+            { $match: { count: { $gt: 1 } } },
+        ];
+
+        const duplicateDocs = await currentCollection.aggregate(pipeline).toArray();
+
+        for (const doc of duplicateDocs) {
+            // Remove duplicates except the first occurrence
+            const idsToDelete = doc.uniqueIds.slice(1); // Keep the first id, delete the rest
+            for (const id of idsToDelete) {
+                await currentCollection.deleteOne({ _id: id });
+            }
+        }
+
+        // Print message based on deletion result
+        console.log('************************************************');
+        console.log(`Successfully deleted duplicate documents with ${field}: '${input}'`);
+        console.log('************************************************');
+
+        // Return the number of deleted documents
+        return duplicateDocs.length;
+    } catch (error) {
+        // Error handling
+        console.error('Error deleting duplicate documents:', error);
+        console.log('************************************************');
+        return null;
+    }
+    }
+
+
+
+/********************************************************************************************************************************************************************/
+
     /* RETRIEVE/ GET THE ENTIRE DATABASE *************************************************************************************************************************/
     async retrieve()
     {
