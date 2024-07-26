@@ -14,3 +14,4 @@ Develop a solution for an online mobile phone store maintaining a database of:
   - Customers may purchase more than one item in a single order.
   - Customers may make multiple orders containing multiple items.
 
+More details here at [Assignment details](https://github.com/user-attachments/files/16395612/CS230.-.Assignment.5.pdf)
